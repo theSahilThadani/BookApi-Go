@@ -1,16 +1,22 @@
 package main
 
 import (
-	"bookapi/internal/model"
-	"log"
-	"net/http"
-
 	"bookapi/internal/handler"
 	"bookapi/internal/middleware"
+	"bookapi/internal/model"
 	"bookapi/internal/store"
+	"log"
+	"net/http"
+	_ "net/http/pprof"
 )
 
 func main() {
+
+	go func() {
+		log.Println("pprof at :6060")
+		http.ListenAndServe(":6060", nil)
+	}()
+
 	// init store and seed sample data
 	s := store.NewShardedBookStore(22)
 	s.Create(model.CreateBookRequest(storeCreate("The Go Programming Language", "Alan Donovan & Brian Kernighan", "978-0134190440", 2015)))
@@ -20,7 +26,7 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// Route: /books  -> list & create
+	// Route: /books  list and create
 	mux.Handle("/books", middleware.Logger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -32,7 +38,7 @@ func main() {
 		}
 	})))
 
-	// Route: /books/ -> get/update/delete by id
+	// Route: /books/  get/update/delete by id
 	mux.Handle("/books/", middleware.Logger(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
@@ -51,7 +57,6 @@ func main() {
 	log.Fatal(http.ListenAndServe(addr, mux))
 }
 
-// small helper to avoid importing model here; thin wrapper to build CreateBookRequest
 func storeCreate(title, author, isbn string, year int) storeCreateReq {
 	return storeCreateReq{title, author, isbn, year}
 }

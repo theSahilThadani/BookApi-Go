@@ -59,12 +59,12 @@ func (s *ShardedBookStore) Create(req model.CreateBookRequest) *model.Book {
 	sh.books[id] = book
 	return book
 }
-func (s *ShardedBookStore) GetAll() []*model.Book {
-	var result []*model.Book
+func (s *ShardedBookStore) GetAll() []model.Book {
+	var result []model.Book
 	for _, sh := range s.shards {
 		sh.mu.RLock()
 		for _, b := range sh.books {
-			result = append(result, b)
+			result = append(result, *b)
 		}
 		sh.mu.RUnlock()
 	}

@@ -12,6 +12,11 @@ type BookHandler struct {
 	store *store.ShardedBookStore
 }
 
+type BookResponse struct {
+	Books []model.Book `json:"books"`
+	Count int          `json:"count"`
+}
+
 func NewBookHandler(store *store.ShardedBookStore) *BookHandler {
 	return &BookHandler{store: store}
 }
@@ -32,10 +37,11 @@ func extractID(path, prefix string) string {
 
 func (h *BookHandler) GetBooks(w http.ResponseWriter, r *http.Request) {
 	books := h.store.GetAll()
-	respondJson(w, http.StatusOK, map[string]interface{}{
-		"books": books,
-		"count": len(books),
-	})
+	response := BookResponse{
+		Books: books,
+		Count: len(books),
+	}
+	respondJson(w, http.StatusOK, response)
 }
 
 func (h *BookHandler) GetBook(w http.ResponseWriter, r *http.Request) {
